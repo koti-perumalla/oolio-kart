@@ -73,7 +73,7 @@ Note: Set the database connection in the DATABASE_URL env variable in docker-com
 **Key design decisions:**
 
 - **RocksDB per worker** — Each of the N workers (scaled to CPU count) owns an isolated RocksDB instance. Coupons are sharded by hash, eliminating cross-worker coordination.
-- **Bitwise merge operator** — Each coupon's source file is encoded as a bit in a 64-bit mask. RocksDB's merge operator performs `OR` accumulation. (without read-modify-write cycles).
+- **Bitwise merge operator** — Each coupon's source file is encoded as a bit in a 64-bit mask. RocksDB's merge operator performs `OR` accumulation. (without read-modify-write cycles/avoided locks contention as much as possible).
 - **Cross-file validation** — Only coupons present in 2+ files are considered valid (`popcount(mask) >= 2`).
 - **Write-optimized RocksDB** — Universal compaction, direct I/O, 64 MB write buffers.
 
