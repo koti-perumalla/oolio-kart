@@ -1,0 +1,46 @@
+
+
+services:
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://coupon:coupon@postgres:5432/coupondb?sslmode=disable
+      REDIS_ADDR: redis:6379
+      COUPON_CACHE_TTL: 1h
+      DB_HOST: postgres
+      DB_USER: coupon
+      DB_PASS: coupon
+      DB_NAME: coupondb
+      REDIS_HOST: redis
+      API_KEY: apitest
+    depends_on:
+      - postgres
+      - redis
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      REACT_APP_API_KEY: apitest
+    depends_on:
+      - backend
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: coupon
+      POSTGRES_PASSWORD: coupon
+      POSTGRES_DB: coupondb
+    ports:
+      - "55432:5432"
+    volumes:
+      - ./backend/migrations:/docker-entrypoint-initdb.d
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
