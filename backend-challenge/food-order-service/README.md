@@ -27,7 +27,7 @@
 - GIT User: koti-perumalla
 - GIT Repository: https://github.com/koti-perumalla/oolio-kart.git
 - Code base root directory: backend-challenge/food-order-service
-- ReadMe: TBD
+- ReadMe: [TBD](https://github.com/koti-perumalla/oolio-kart/blob/main/backend-challenge/food-order-service/README.md)
 
 - Requirements Details: https://github.com/koti-perumalla/oolio-kart/blob/main/backend-challenge/README.md
 
@@ -98,7 +98,7 @@ Coupons are distributed across three plain-text files (one coupon code per line)
   Read in Parallel 
       │
       ▼
-  Validate Format (8–10 char ASCII) ->  Hash (xxhash64 + FNV-64a)
+  Validate Format (8–10 char, alphabets only) ->  Hash (xxhash64 + FNV-64a)
       │
       ▼
   Route to Worker Shards (RocksDB)
@@ -235,15 +235,15 @@ Returns detailed metrics for the current or most recent processing run.
 
 
 ## Scaling to Next Level
-- Current design technically should work well unto 5 t 10 billion coupon files with a decent 24 core, 32GB RAM and 1TB SSD machine or little more higher. (By increasing resources it can process unto 20 billion files)
+- Current design technically works well upto 5 t 10 billion coupon files with a decent 24 core, 32GB RAM and 1TB SSD machine or little more higher. (By increasing resources it can process unto 20 billion to 30 billion files)
 
 - To Scale to next level
   - Introduce Kafka/Queue based distributed model with distributed key-value store kind of DB with high consistency configuration for couponos ( Ex: AWS Dynamo or Scylla DB)
     - This is horzantally scales
-    - Trade offs: Lot of network i/o, processing across multiple machines etc increases processing time significantly.
+    - Trade offs: Lot of network i/o, processing across multiple machines etc may increases processing time. Cost increases significantly.
 
 ## Unit Test Results
-- When I tested this applocation in my laptop docker instance (technically resources are less)
+- When I tested this applocation in my laptop docker instance (resources are less)
   - Test1: 3 files, each file with 100K coupons (with around 75% overall valid coupons) processed with in few secs
   - Test2: 3 files, each file with 10 million coupons (with around 75% overall valid coupons) processed with in few mins
 

@@ -56,7 +56,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def random_code(prefix: str, min_length: int, max_length: int) -> str:
-    alphabet = string.ascii_uppercase + string.digits
+    #alphabet = string.ascii_uppercase + string.digits
+    alphabet = string.ascii_uppercase 
 
     if min_length < 8 or max_length > 10 or min_length > max_length:
         raise ValueError("coupon length must stay within 8 to 10 characters")

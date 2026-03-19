@@ -17,7 +17,15 @@ type CouponHash struct {
 
 func IsCouponCodeFormatValid(code string) bool {
 	length := utf8.RuneCountInString(code)
-	return length >= 8 && length <= 10
+	if length < 8 || length > 10 {
+		return false
+	}
+	for _, r := range code {
+		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z')) {
+			return false
+		}
+	}
+	return true
 }
 
 func HashCoupon(code string) CouponHash {
