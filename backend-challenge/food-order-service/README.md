@@ -27,7 +27,7 @@
 - GIT User: koti-perumalla
 - GIT Repository: https://github.com/koti-perumalla/oolio-kart.git
 - Code base root directory: backend-challenge/food-order-service
-- ReadMe: [TBD](https://github.com/koti-perumalla/oolio-kart/blob/main/backend-challenge/food-order-service/README.md)
+- ReadMe: https://github.com/koti-perumalla/oolio-kart/blob/main/backend-challenge/food-order-service/README.md
 
 - Requirements Details: https://github.com/koti-perumalla/oolio-kart/blob/main/backend-challenge/README.md
 
