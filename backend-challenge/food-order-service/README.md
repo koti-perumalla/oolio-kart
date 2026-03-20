@@ -21,7 +21,7 @@
 - **Order Placement** — Place orders with optional coupon discounts
 - **Bulk Coupon Upload & Processing** — Upload up to 3 coupon files, process them in parallel, validate coupons, and save valid coupons in DB
 - **Real-time Progress Tracking** — Monitor coupon processing status with detailed metrics
-- **Coupon Validation** — Two-level hashing (xxhash64 + FNV-64a) with Redis caching
+- **Coupon Validation in Order flow** — Redis caching
 
 ## GIT Repository details
 - GIT User: koti-perumalla
