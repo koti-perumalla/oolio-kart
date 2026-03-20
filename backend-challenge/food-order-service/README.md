@@ -50,12 +50,14 @@ OR
 docker compose build --no-cache
 docker compose up
 
-Note: If you are building locally, you may have to install RocksDB (inside docker, docker compose took care of it)
+Note: If you are building locally, you may have to install RocksDB.
 brew install rocksdb
+
+(inside docker, docker compose took care of it)
+
 ```
 
 Note: Set the database connection in the DATABASE_URL env variable in docker-compose.yml
-
 
 # Getting Started
 
@@ -71,7 +73,7 @@ Note: Set the database connection in the DATABASE_URL env variable in docker-com
 **Key design decisions:**
 
 - **RocksDB per worker** — Each of the N workers (scaled to CPU count) owns an isolated RocksDB instance. Coupons are sharded by hash, eliminating cross-worker coordination.
-- **Bitwise merge operator** — Each coupon's source file is encoded as a bit in a 64-bit mask. RocksDB's merge operator performs `OR` accumulation. (Avoided read-modify-write cycles/locks contention as much as possible).
+- **Bitwise merge operator** — Each coupon's source file is encoded as a bit in a 64-bit mask. RocksDB's merge operator performs `OR` on bit masks. (Reduced locks contention as much as possible).
 - **Cross-file validation** — Only coupons present in 2+ files are considered valid (`bits  count >= 2`).
 - **Write-optimized RocksDB** — Universal compaction, direct I/O, 64 MB write buffers.
 
@@ -117,7 +119,7 @@ Each coupon code produces a `CouponHash` with two independent 64-bit hashes:
 - `Hash1` — [xxhash](https://github.com/cespare/xxhash) (`xxhash.Sum64String`)
 - `Hash2` — FNV-1a 64-bit (`hash/fnv`)
 - I selected Hashes over string as a key to improve computation.
-- Reduced the collion probability to almost 0.
+- Reduced the collisions probability to almost 0.
 
 **Detecting Valid Coupon:**: Requirement: Coupon is valid if it appears in ≥2 of 3 files
 - I have used bit masking. 
@@ -221,6 +223,9 @@ Returns detailed metrics for the current or most recent processing run.
 }
 ```
 
+## Todos
+- Maintain runid & it's filles etc details for each run in db & it's status.
+- Add functionality to gracefully handle run failures. (Design a solution to trigger pending runs, cleanup of failure runs)
 
 ## Scaling to Next Level
 - Current design technically works well upto 5 t 10 billion coupon files with a decent 24 core, 32GB RAM and 2TB SSD machine or little more higher. (By increasing resources it can process unto 20 billion to 30 billion files)
