@@ -59,8 +59,6 @@ Note: Set the database connection in the DATABASE_URL env variable in docker-com
 
 # Getting Started
 
-
-
 ## Key Technical Notes
 - I observed the complexity came from
   - Large input size (tens of thousands to millions of coupons)
@@ -73,8 +71,8 @@ Note: Set the database connection in the DATABASE_URL env variable in docker-com
 **Key design decisions:**
 
 - **RocksDB per worker** — Each of the N workers (scaled to CPU count) owns an isolated RocksDB instance. Coupons are sharded by hash, eliminating cross-worker coordination.
-- **Bitwise merge operator** — Each coupon's source file is encoded as a bit in a 64-bit mask. RocksDB's merge operator performs `OR` accumulation. (without read-modify-write cycles/avoided locks contention as much as possible).
-- **Cross-file validation** — Only coupons present in 2+ files are considered valid (`popcount(mask) >= 2`).
+- **Bitwise merge operator** — Each coupon's source file is encoded as a bit in a 64-bit mask. RocksDB's merge operator performs `OR` accumulation. (Avoided read-modify-write cycles/locks contention as much as possible).
+- **Cross-file validation** — Only coupons present in 2+ files are considered valid (`bits  count >= 2`).
 - **Write-optimized RocksDB** — Universal compaction, direct I/O, 64 MB write buffers.
 
 ## Where hashing is computed
@@ -104,13 +102,13 @@ Coupons are distributed across three plain-text files (one coupon code per line)
   Route to Worker Shards (RocksDB)
       │
       ▼
-  Deduplicate via Bitwise OR Merge
+  Mark cooupon presence via Bitwise OR Merge
       │
       ▼
-  Scan Workers for Cross-File Coupons (appearing in ≥2 files)
+  Scan Workers for valid Coupons (appearing in ≥2 files)
       │
       ▼
-  Batch Insert into PostgreSQL (batches of 5000)
+  Batch Insert into PostgreSQL 
 
 ```
 
@@ -118,13 +116,13 @@ Coupons are distributed across three plain-text files (one coupon code per line)
 Each coupon code produces a `CouponHash` with two independent 64-bit hashes:
 - `Hash1` — [xxhash](https://github.com/cespare/xxhash) (`xxhash.Sum64String`)
 - `Hash2` — FNV-1a 64-bit (`hash/fnv`)
+- I selected Hashes over string as a key to improve computation.
+- Reduced the collion probability to almost 0.
 
 **Detecting Valid Coupon:**: Requirement: Coupon is valid if it appears in ≥2 of 3 files
 - I have used bit masking. 
   - Why bit masking approach?
-    - Low memory usage
     - Bit operations are very fast
-    - No dynamic allocations
     - Trade off: Works well for the requirement of 3 files (Max can scale up to max 64 files). 
 
 **Concurrency model:** 
@@ -141,28 +139,20 @@ Each coupon code produces a `CouponHash` with two independent 64-bit hashes:
 
 
 ## Project Structure
-
-```
-├── docker-compose.yml
-├── backend/
-│   ├── Dockerfile
-│   ├── go.mod
-│   ├── cmd/server/main.go          # Entry point
-│   ├── internal/
-│   │   ├── api/                    # HTTP handlers, router
-│   │   ├── cache/                  # Redis client
-│   │   ├── db/                     # PostgreSQL connection & migrations
-│   │   ├── processor/              # Coupon processing pipeline
-│   │   ├── service/                # Business logic (coupons, products)
-│   │   └── util/                   # Hashing utilities
-│   ├── migrations/                 # SQL migrations & seed data
-│   └── public/openapi.yaml         # API specification
-├── frontend/
-│   ├── Dockerfile
-│   └── src/                        # React application
-└── test-scripts/                   # test Coupon file generators & samples
-```
-
+- `docker-compose.yml` — Docker compose file
+- `backend/cmd/server/main.go` — Entry point
+- `backend/internal/api` — HTTP handlers and router
+- `backend/internal/processor` — Coupon file processing pipeline
+- `backend/internal/service` — Business logic (products/coupons)
+- `backend/internal/cache` — Redis client
+- `backend/internal/db` — PostgreSQL connection
+- `backend/internal/utli` — Hashing utilities
+- `backend/internal/Dockerfile` — Dockerfile for backend
+- `backend/public/openapi.yaml` — OpenAPI spec served by backend
+- `frontend/src` — React app (UI + API client helpers)
+- `frontend/Dockerfile` — Dockerfile for frontend
+- `backend/migrations` — DB schema + seed data
+- `backend/testscripts` — test Coupon file generators & samples
 
 ## Core routes
 - `GET /api/product`
@@ -226,16 +216,14 @@ Returns detailed metrics for the current or most recent processing run.
   "currentRunTotalLines": 47500,
   "currentRunValid": 315,
   "currentRunInvalidFormat": 12,
-  "currentRunDuplicatesWithinFile": 48,
   "lastStartedAt": "2026-03-16T10:00:00Z",
   "lastCompletedAt": "2026-03-16T10:00:04Z"
 }
 ```
 
 
-
 ## Scaling to Next Level
-- Current design technically works well upto 5 t 10 billion coupon files with a decent 24 core, 32GB RAM and 1TB SSD machine or little more higher. (By increasing resources it can process unto 20 billion to 30 billion files)
+- Current design technically works well upto 5 t 10 billion coupon files with a decent 24 core, 32GB RAM and 2TB SSD machine or little more higher. (By increasing resources it can process unto 20 billion to 30 billion files)
 
 - To Scale to next level
   - Introduce Kafka/Queue based distributed model with distributed key-value store kind of DB with high consistency configuration for couponos ( Ex: AWS Dynamo or Scylla DB)
