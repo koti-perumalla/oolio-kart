@@ -223,9 +223,14 @@ Returns detailed metrics for the current or most recent processing run.
 }
 ```
 
+## Approx Execution Time
+- If we go with 32 vCPUs, 64GB RAM, 1TB ssd: 3 coupons files, each with around 1 billion coupons would processed in 5 to 6 mins. (Peak RAM usare aroound 15% to 20%, CPU usage around 50%)
+- Based on peak size ou input files, we can tweak h/w configurations. 
+
 ## Todos
 - Maintain runid & it's filles etc details for each run in db & it's status.
-- Add functionality to gracefully handle run failures. (Design a solution to trigger pending runs, cleanup of failure runs)
+- Add functionality to gracefully handle run failures. (Design a solution to trigger pending runs, cleanup of failure runs).
+- 3 routines/threads used to read 3 files, this i can optimize further by splitting each file in batches and prcess in paralell.
 
 ## Scaling to Next Level
 - Current design technically works well upto 5 t 10 billion coupon files with a decent 24 core, 32GB RAM and 2TB SSD machine or little more higher. (By increasing resources it can process unto 20 billion to 30 billion files)
