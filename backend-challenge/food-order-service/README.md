@@ -242,7 +242,7 @@ Returns detailed metrics for the current or most recent processing run.
 
 ## Unit Test Results
 - When I tested this applocation in my laptop docker instance (resources are less)
-  - Test1: 3 files, each file with 100K coupons (with around 75% overall valid coupons) processed with in few secs
+  - Test1: 3 files, each file with 100K coupons (with around 75% overall valid coupons) processed with in 1.3 secs
   - Test2: 3 files, each file with 10 million coupons (with around 75% overall valid coupons) processed with in few mins
 
 
